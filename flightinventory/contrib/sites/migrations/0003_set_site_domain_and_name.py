@@ -37,23 +37,23 @@ def _update_or_create_site_with_sequence(site_model, connection, domain, name):
 def update_site_forward(apps, schema_editor):
     """Set site domain and name."""
     Site = apps.get_model("sites", "Site")
-    _update_or_create_site_with_sequence(
-        Site,
-        schema_editor.connection,
-        "example.com",
-        "FlightInventory",
-    )
+    # _update_or_create_site_with_sequence(
+    #     Site,
+    #     schema_editor.connection,
+    #     "example.com",
+    #     "FlightInventory",
+    # )
 
 
 def update_site_backward(apps, schema_editor):
     """Revert site domain and name to default."""
     Site = apps.get_model("sites", "Site")
-    _update_or_create_site_with_sequence(
-        Site,
-        schema_editor.connection,
-        "example.com",
-        "example.com",
-    )
+    # _update_or_create_site_with_sequence(
+    #     Site,
+    #     schema_editor.connection,
+    #     "example.com",
+    #     "example.com",
+    # )
 
 
 class Migration(migrations.Migration):

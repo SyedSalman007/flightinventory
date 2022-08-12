@@ -1,6 +1,5 @@
-import status as status
+import logging
 from django.contrib.auth import authenticate
-from django.contrib.auth import get_user_model
 from rest_framework import permissions
 from rest_framework import status
 from rest_framework.decorators import action
@@ -8,13 +7,12 @@ from rest_framework.mixins import ListModelMixin, RetrieveModelMixin, UpdateMode
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
-from rest_framework import generics
-from flightinventory.users.api.request_serializers import UserLoginSerializer, TokenSerializer
-from flightinventory.users.api.request_serializers import SearchingUserSerializer
-from flightinventory.users.api.serializers import UserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from flightinventory.users.api.request_serializers import SearchingUserSerializer
+from flightinventory.users.api.request_serializers import UserLoginSerializer, TokenSerializer
+from flightinventory.users.api.serializers import UserSerializer
 from flightinventory.users.models import User
-from django.db.models.functions import Least
 
 
 class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericViewSet):
@@ -37,14 +35,14 @@ class RefreshTokenGetter(APIView):
 
     def post(self, request):
         serializer = TokenSerializer(data=request.data)
-        print(request.data)
-        print(serializer)
+        logging.info(request.data)
+        logging.info(serializer)
         try:
-            print("in try")
+            logging.info("in try")
             serializer.is_valid(raise_exception=True)
             return Response(serializer.validated_data, status=status.HTTP_200_OK)
         except Exception as exc:
-            print("Some error occurred", exc)
+            logging.exception("Some error occurred", exc)
             return Response({}, status=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -57,18 +55,17 @@ class UserLoginAPI(APIView):
         username = request_data.validated_data.get("username")
         email = request_data.validated_data.get("email")
         password = request_data.validated_data.get("password")
-        # print(request.validated_data)
+        logging.info(request_data.validated_data)
         user = authenticate(username=username, email=email, password=password)
 
         if not user:
-            # print("errrrrrrrrr")
             return Response(
                 data="Unable to login",
                 status=status.HTTP_401_UNAUTHORIZED,
             )
 
         refresh_token = RefreshToken.for_user(user)
-        # Response.set_cookie(key='jwt', value=refresh_token, httponly=True)
+
         return Response(
             data={
                 "access": str(refresh_token.access_token),
@@ -78,7 +75,6 @@ class UserLoginAPI(APIView):
             },
             status=status.HTTP_200_OK,
         )
-
 
 
 class UserSignupAPI(APIView):
@@ -91,8 +87,7 @@ class UserSignupAPI(APIView):
             user.save()
             return Response(data={"message": "User is created"}, status=status.HTTP_200_OK)
         except Exception as err:
-            print(err)
-            print("ERROR")
+            logging.exception("Error occured while ")
             return Response(data={'message': "Enter correct data"}, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -104,11 +99,10 @@ class UserSearchAPI(APIView):
         try:
             user.is_valid(raise_exception=True)
             valid_user = user.validated_data
-            print(valid_user)
+            logging.info(valid_user)
             usernames = [val['username'] for val in valid_user]
-            print(usernames)
+            logging.info(usernames)
             users = User.objects.filter(username__in=usernames)
-            # print(exist)
             return Response(
                 data={
                     "message": f"{users} is in the database",
@@ -116,9 +110,5 @@ class UserSearchAPI(APIView):
                 },
                 status=status.HTTP_200_OK)
         except Exception as error:
-            print(f"Error = {error}")
+            logging.exception(f"Error = {error}")
             return Response(data={"message": "Invalid data entered"}, status=status.HTTP_400_BAD_REQUEST)
-
-
-# class Token_Generator(APIView):
-

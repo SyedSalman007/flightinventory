@@ -10,10 +10,11 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import GenericViewSet
 from rest_framework import generics
 from flightinventory.users.api.request_serializers import UserLoginSerializer, TokenSerializer
-from flightinventory.users.api.serializers import UserSerializer, ContactDetailSerializer
+from flightinventory.users.api.request_serializers import SearchingUserSerializer
+from flightinventory.users.api.serializers import UserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
-
-User = get_user_model()
+from flightinventory.users.models import User
+from django.db.models.functions import Least
 
 
 class UserViewSet(RetrieveModelMixin, ListModelMixin, UpdateModelMixin, GenericViewSet):
@@ -67,6 +68,7 @@ class UserLoginAPI(APIView):
             )
 
         refresh_token = RefreshToken.for_user(user)
+        # Response.set_cookie(key='jwt', value=refresh_token, httponly=True)
         return Response(
             data={
                 "access": str(refresh_token.access_token),
@@ -76,6 +78,7 @@ class UserLoginAPI(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
 
 
 class UserSignupAPI(APIView):
@@ -91,4 +94,31 @@ class UserSignupAPI(APIView):
             print(err)
             print("ERROR")
             return Response(data={'message': "Enter correct data"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserSearchAPI(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        user = SearchingUserSerializer(data=request.data, many=True)
+        try:
+            user.is_valid(raise_exception=True)
+            valid_user = user.validated_data
+            print(valid_user)
+            usernames = [val['username'] for val in valid_user]
+            print(usernames)
+            users = User.objects.filter(username__in=usernames)
+            # print(exist)
+            return Response(
+                data={
+                    "message": f"{users} is in the database",
+                    "user": UserSerializer(users, many=True).data
+                },
+                status=status.HTTP_200_OK)
+        except Exception as error:
+            print(f"Error = {error}")
+            return Response(data={"message": "Invalid data entered"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class Token_Generator(APIView):
 

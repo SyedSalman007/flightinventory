@@ -19,3 +19,6 @@ class TokenSerializer(serializers.Serializer):
         data = {'access': str(refresh_token.access_token), "refresh": str(refresh_token)}
         return data
 
+
+class SearchingUserSerializer(serializers.Serializer):
+    username = serializers.CharField()

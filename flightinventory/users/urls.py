@@ -1,6 +1,6 @@
 from rest_framework.routers import DefaultRouter
 from django.urls import path
-from flightinventory.users.api.views import UserLoginAPI, RefreshTokenGetter, UserSignupAPI
+from flightinventory.users.api.views import UserLoginAPI, RefreshTokenGetter, UserSignupAPI, UserSearchAPI
 from flightinventory.users.api.views import UserViewSet
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -18,6 +18,7 @@ urlpatterns = [
     path("users/login/", UserLoginAPI.as_view(), name="login"),
     path("users/token/", RefreshTokenGetter.as_view(), name="token"),
     path("users/signup/", UserSignupAPI.as_view(), name="signup"),
+    path("users/search/", UserSearchAPI.as_view(), name="search"),
     ]
 urlpatterns += router.urls
 
